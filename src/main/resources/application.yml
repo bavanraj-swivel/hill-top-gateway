@@ -1,0 +1,27 @@
+spring:
+  application:
+    name: hill-top-gateway
+  cloud:
+    gateway:
+      routes:
+        - id: hill-top-reservation
+          uri: http://hilltopreservation-env.eba-gnkt6hum.us-east-1.elasticbeanstalk.com/
+          predicates:
+            - Path=/hill-top-reservation/**
+        - id: hill-top-hotel
+          uri: http://hilltophotel-env.eba-rsm2pfsn.us-east-1.elasticbeanstalk.com/
+          predicates:
+            - Path=/hill-top-hotel/**
+        - id: hill-top-user
+          uri: http://hilltopuser-env.eba-6vksjwah.us-east-1.elasticbeanstalk.com/
+          predicates:
+            - Path=/hill-top-user/**
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://hilltopdiscovery-env.eba-matiignc.us-east-1.elasticbeanstalk.com/eureka
+
+server:
+  port: 5000
+
