@@ -1,35 +1,3 @@
-#spring:
-#  application:
-#    name: hill-top-gateway
-#  cloud:
-#    gateway:
-#      routes:
-#        - id: hill-top-reservation
-#          uri: http://hilltopreservation-env.eba-gnkt6hum.us-east-1.elasticbeanstalk.com/
-#          predicates:
-#            - Path=/hill-top-reservation/**
-#        - id: hill-top-hotel
-#          uri: http://hilltophotel-env.eba-rsm2pfsn.us-east-1.elasticbeanstalk.com/
-#          predicates:
-#            - Path=/hill-top-hotel/**
-#        - id: hill-top-user
-#          uri: http://hilltopuser-env.eba-6vksjwah.us-east-1.elasticbeanstalk.com/
-#          predicates:
-#            - Path=/hill-top-user/**
-#
-#eureka:
-#  client:
-#    serviceUrl:
-#      defaultZone: http://hilltopdiscovery-env.eba-matiignc.us-east-1.elasticbeanstalk.com/eureka
-#
-#server:
-#  port: 5000
-userService:
-  validateToken: http://localhost:8081/hill-top-user/api/v1/user/validate-token?token=
-
-
-
-
 spring:
   application:
     name: hill-top-gateway
@@ -37,27 +5,31 @@ spring:
     gateway:
       routes:
         - id: hill-top-reservation
-          uri: http://localhost:8083/
+          uri: http://hilltopreservation-env.eba-gnkt6hum.us-east-1.elasticbeanstalk.com/
           predicates:
             - Path=/hill-top-reservation/**
           filters:
             - JwtAuthenticationFilter
         - id: hill-top-hotel
-          uri: http://localhost:8082/
+          uri: http://hilltophotel-env.eba-rsm2pfsn.us-east-1.elasticbeanstalk.com/
           predicates:
             - Path=/hill-top-hotel/**
           filters:
             - JwtAuthenticationFilter
         - id: hill-top-user
-          uri: http://localhost:8081/
+          uri: http://hilltopuser-env.eba-6vksjwah.us-east-1.elasticbeanstalk.com/
           predicates:
             - Path=/hill-top-user/**
           filters:
             - JwtAuthenticationFilter
+
 eureka:
   client:
     serviceUrl:
-      defaultZone: http://localhost:5000/eureka
-server:
-  port: 8080
+      defaultZone: http://hilltopdiscovery-env.eba-matiignc.us-east-1.elasticbeanstalk.com/eureka
 
+server:
+  port: 5000
+
+userService:
+  validateToken: http://hilltopuser-env.eba-6vksjwah.us-east-1.elasticbeanstalk.com/hill-top-user/api/v1/user/validate-token?token=
