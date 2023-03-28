@@ -11,7 +11,7 @@ spring:
           filters:
             - JwtAuthenticationFilter
         - id: hill-top-hotel
-          uri: http://hilltophotel-env.eba-rsm2pfsn.us-east-1.elasticbeanstalk.com/
+          uri: http://hotelhilltop-env.eba-9jvc22jc.us-east-1.elasticbeanstalk.com/
           predicates:
             - Path=/hill-top-hotel/**
           filters:
