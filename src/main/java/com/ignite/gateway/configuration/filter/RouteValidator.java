@@ -24,9 +24,11 @@ public class RouteValidator {
             "/v2/api-docs"
     );
 
-    public Predicate<ServerHttpRequest> isSecured =
+    public static final Predicate<ServerHttpRequest> isSecured =
             request -> openApiEndpoints
                     .stream()
                     .noneMatch(uri -> request.getURI().getPath().contains(uri));
 
+    private RouteValidator() {
+    }
 }

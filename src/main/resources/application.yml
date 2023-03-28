@@ -24,6 +24,11 @@
 #
 #server:
 #  port: 5000
+userService:
+  validateToken: http://localhost:8081/hill-top-user/api/v1/user/validate-token?token=
+
+
+
 
 spring:
   application:

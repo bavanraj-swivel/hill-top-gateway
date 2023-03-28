@@ -2,6 +2,7 @@ package com.ignite.gateway.configuration.filter;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
 import org.springframework.http.HttpHeaders;
@@ -21,11 +22,12 @@ import java.util.Objects;
 @Slf4j
 public class JwtAuthenticationFilter extends AbstractGatewayFilterFactory<JwtAuthenticationFilter.Config> {
 
-    private static final String AUTH_URL = "http://localhost:8081/hill-top-user/api/v1/user/validate-token?token=";
-    @Autowired
-    private RouteValidator routeValidator;
+    private static final String BEARER_PREFIX = "Bearer ";
+    private static final String AUTHORIZATION_HEADER_MISSING = "Authorization token header missing";
     @Autowired
     private RestTemplate restTemplate;
+    @Value("${userService.validateToken}")
+    private String authUrl;
 
     public JwtAuthenticationFilter() {
         super(Config.class);
@@ -40,28 +42,38 @@ public class JwtAuthenticationFilter extends AbstractGatewayFilterFactory<JwtAut
     @Override
     public GatewayFilter apply(Config config) {
         return ((exchange, chain) -> {
-            if (routeValidator.isSecured.test(exchange.getRequest())) {
+            if (RouteValidator.isSecured.test(exchange.getRequest())) {
                 if (!exchange.getRequest().getHeaders().containsKey(HttpHeaders.AUTHORIZATION)) {
-                    return Mono.error(new ResponseStatusException(HttpStatus.UNAUTHORIZED,
-                            "Authorization token header missing"));
+                    log.error(AUTHORIZATION_HEADER_MISSING);
+                    return Mono.error(new ResponseStatusException(HttpStatus.UNAUTHORIZED, AUTHORIZATION_HEADER_MISSING));
                 }
                 String authHeader = Objects.requireNonNull(exchange.getRequest().getHeaders()
                         .get(HttpHeaders.AUTHORIZATION)).get(0);
-                if (authHeader != null && authHeader.startsWith("Bearer ")) {
-                    authHeader = authHeader.substring(7);
+                if (authHeader != null && authHeader.startsWith(BEARER_PREFIX)) {
+                    authHeader = authHeader.substring(BEARER_PREFIX.length());
                 }
                 try {
-                    restTemplate.getForObject(AUTH_URL + authHeader, String.class);
+                    restTemplate.getForObject(authUrl + authHeader, String.class);
                 } catch (HttpClientErrorException e) {
                     log.error("Token validation failed from user service. Error message: {}", e.getMessage());
-                    if (e.getStatusCode().equals(HttpStatus.UNAUTHORIZED))
-                        return Mono.error(new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid token", e));
-                    return Mono.error(
-                            new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "An error occurred", e));
+                    return sendUserServiceErrorResponse(e).then();
                 }
             }
             return chain.filter(exchange);
         });
+    }
+
+    /**
+     * This method is used to send error response according to user service error response.
+     *
+     * @param exception exception
+     * @return response
+     */
+    private Mono<ResponseStatusException> sendUserServiceErrorResponse(HttpClientErrorException exception) {
+        if (exception.getStatusCode().equals(HttpStatus.UNAUTHORIZED))
+            return Mono.error(new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid token", exception));
+        return Mono.error(
+                new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "An error occurred", exception));
     }
 
     public static class Config {
